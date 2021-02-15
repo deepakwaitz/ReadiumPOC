@@ -103,20 +103,20 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
                         orientation = LinearLayout.VERTICAL
 
                         for (navigation in result.feed!!.navigation) {
-                            button {
-                                text = navigation.title
-                                onClick {
-                                    val model = OPDSModel(navigation.title!!, navigation.href.toString(), opdsModel?.type!!)
-                                    progress.show()
-                                    startActivity(intentFor<OPDSCatalogActivity>("opdsModel" to model))
-                                }
-                            }
+//                            button {
+//                                text = navigation.title
+//                                onClick {
+//                                    val model = OPDSModel(navigation.title!!, navigation.href.toString(), opdsModel?.type!!)
+//                                    progress.show()
+//                                    startActivity(intentFor<OPDSCatalogActivity>("opdsModel" to model))
+//                                }
+//                            }
                         }
 
                         if (result.feed!!.publications.isNotEmpty()) {
                             recyclerView {
                                 layoutManager = GridAutoFitLayoutManager(act, 120)
-                                adapter = RecyclerViewAdapter(act, result.feed!!.publications)
+                                adapter = RecyclerViewAdapter(act, result.feed!!.publications.subList(0,50))// For time being just passing 50 items to the adapter instead of passing 450 +, which makes the page loads very slow.
                             }
                         }
 
