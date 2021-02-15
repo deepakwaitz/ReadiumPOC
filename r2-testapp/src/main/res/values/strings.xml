@@ -9,7 +9,7 @@
   -->
 
 <resources>
-    <string name="app_name" translatable="false">Follet Reader</string>
+    <string name="app_name" translatable="false">Book Reader</string>
     <string name="menu_item_show_epub_list">Show List</string>
     <string name="menu_item_add_epub">Add ePub</string>
     <string name="menu_item_filter">Filter</string>
