@@ -69,11 +69,11 @@
     <string name="github_tag">2.2.0</string>
 
     <string name="copyright_label">Copyright</string>
-    <string name="copyright">\@ 2019 European Digital Reading Lab</string>
+    <string name="copyright">\@ 2018 Photon Digital Reading Lab</string>
     <string name="bsd_license_label">[BSD-3 license]</string>
     <string name="bsd_license_label_accessible">[B S D 3 license]</string>
     <string name="acknowledgements_label">Acknowledgements</string>
-    <string name="acknowledgements_french_state">R2 Reader wouldn\'t have been developed without the financial help of the French state.</string>
+    <string name="acknowledgements_french_state">Reader have been developed with the help of Photon.</string>
     <string name="opds_list_more">More…</string>
     <string name="opds_detail_download_button">Download</string>
 
