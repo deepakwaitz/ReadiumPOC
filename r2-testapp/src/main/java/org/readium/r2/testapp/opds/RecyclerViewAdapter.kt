@@ -24,12 +24,12 @@ import org.readium.r2.shared.publication.Publication
 import org.readium.r2.shared.publication.opds.images
 import org.readium.r2.testapp.R
 
+//
 class RecyclerViewAdapter(private val activity: Activity, private val strings: MutableList<Publication>) : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = activity.layoutInflater
         val view = inflater.inflate(R.layout.item_recycle_opds, parent, false)
-
         return ViewHolder(view)
     }
 
@@ -39,10 +39,10 @@ class RecyclerViewAdapter(private val activity: Activity, private val strings: M
         viewHolder.textView.text = publication.metadata.title
 
         publication.linkWithRel("http://opds-spec.org/image/thumbnail")?.let { link ->
-            Picasso.with(activity).load(link.href).into(viewHolder.imageView)
+            Picasso.with(activity).load(link.href).placeholder(R.drawable.ic_book).into(viewHolder.imageView)
         } ?: run {
             if (publication.images.isNotEmpty()) {
-                Picasso.with(activity).load(publication.images.first().href).into(viewHolder.imageView)
+                Picasso.with(activity).load(publication.images.first().href).placeholder(R.drawable.ic_book).into(viewHolder.imageView)
             }
         }
 
