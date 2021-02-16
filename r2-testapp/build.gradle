@@ -73,6 +73,7 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
     final READIUM_VERSION = '2.0.0-beta.1'
     if (findProject(':r2-shared')) {
