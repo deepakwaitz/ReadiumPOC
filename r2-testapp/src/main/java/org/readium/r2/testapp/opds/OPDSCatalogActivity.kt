@@ -202,7 +202,7 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
                     if (!recyclerView.canScrollVertically(1) && totalItemCount <= publicationsList.size) {
                         val updatedList = publicationsList.toList()
                         for (i in totalItemCount until totalItemCount + 20) {
-                            if (i < updatedList.size - 1)
+                            if (i < updatedList.size)
                                 currentPublicationsList.add(updatedList[i])
                         }
                         recyclerView.adapter?.notifyDataSetChanged()
