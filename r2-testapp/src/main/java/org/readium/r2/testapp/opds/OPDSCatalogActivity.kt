@@ -15,7 +15,6 @@ package org.readium.r2.testapp.opds
 import android.app.ProgressDialog
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.widget.LinearLayout
 import android.widget.ListPopupWindow
@@ -71,8 +70,7 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
     private lateinit var scrollListener: RecyclerView.OnScrollListener
     private lateinit var mRecyclerView: RecyclerView
     private lateinit var mLinearLayoutManager: LinearLayoutManager
-    private lateinit var publicationsList :MutableList<Publication>
-    private lateinit var currentPublicationsList :MutableList<Publication>
+    private var currentPublicationsList: MutableList<Publication> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -97,9 +95,8 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
         }
 
         parsePromise?.successUi { result ->
-
             facets = result.feed?.facets ?: mutableListOf()
-            publicationsList = result.feed?.publications!!
+            val publicationsList = result.feed?.publications!!
 
             if (facets.size > 0) {
                 showFacetMenu = true
@@ -128,10 +125,12 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
                             mRecyclerView = recyclerView {
                                 layoutManager = GridAutoFitLayoutManager(act, 120)
                                 mLinearLayoutManager = layoutManager as LinearLayoutManager
-                                currentPublicationsList=publicationsList.subList(0, 20)
-                                adapter = RecyclerViewAdapter(act,currentPublicationsList )// For time being just passing 50 items to the adapter instead of passing 450 +, which makes the page loads very slow.
+                                for (i in 0 until 20) {
+                                    currentPublicationsList.add(publicationsList[i])
+                                }
+                                adapter = RecyclerViewAdapter(act, currentPublicationsList)// For time being just passing 50 items to the adapter instead of passing 450 +, which makes the page loads very slow.
                             }
-                            setRecyclerViewScrollListener()
+                            setRecyclerViewScrollListener(publicationsList)
                         }
 
                         for (group in result.feed!!.groups) {
@@ -193,21 +192,32 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
 
     }
 
-    private fun setRecyclerViewScrollListener() {
+    private fun setRecyclerViewScrollListener(publicationsList: MutableList<org.readium.r2.shared.publication.Publication>) {
         scrollListener = object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 lastVisibleItemPosition = mLinearLayoutManager.findLastVisibleItemPosition()
                 super.onScrollStateChanged(recyclerView, newState)
                 val totalItemCount = recyclerView.layoutManager?.itemCount
-                if (totalItemCount == lastVisibleItemPosition + 1) {
-                    var updatedList=publicationsList.subList(totalItemCount, totalItemCount+20)
-                    currentPublicationsList.addAll(updatedList)
-                    recyclerView.adapter?.notifyDataSetChanged()
-                    mRecyclerView.removeOnScrollListener(scrollListener)
+                if (totalItemCount != null) {
+                    if (!recyclerView.canScrollVertically(1) && totalItemCount <= publicationsList.size) {
+                        val updatedList = publicationsList.toList()
+                        for (i in totalItemCount until totalItemCount + 20) {
+                            if (i < updatedList.size - 1)
+                                currentPublicationsList.add(updatedList[i])
+                        }
+                        recyclerView.adapter?.notifyDataSetChanged()
+                    }
                 }
             }
+
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+            }
+
+
         }
-       mRecyclerView.addOnScrollListener(scrollListener)
+        mRecyclerView.addOnScrollListener(scrollListener)
     }
 
     override fun onPause() {
