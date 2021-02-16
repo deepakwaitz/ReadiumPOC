@@ -73,7 +73,6 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
     private lateinit var mLinearLayoutManager: LinearLayoutManager
     private lateinit var publicationsList :MutableList<Publication>
     private lateinit var currentPublicationsList :MutableList<Publication>
-    private lateinit var mRecyclerViewAdapter: RecyclerViewAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -131,7 +130,6 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
                                 mLinearLayoutManager = layoutManager as LinearLayoutManager
                                 currentPublicationsList=publicationsList.subList(0, 20)
                                 adapter = RecyclerViewAdapter(act,currentPublicationsList )// For time being just passing 50 items to the adapter instead of passing 450 +, which makes the page loads very slow.
-                                mRecyclerViewAdapter = adapter as RecyclerViewAdapter
                             }
                             setRecyclerViewScrollListener()
                         }
@@ -202,11 +200,10 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
                 super.onScrollStateChanged(recyclerView, newState)
                 val totalItemCount = recyclerView.layoutManager?.itemCount
                 if (totalItemCount == lastVisibleItemPosition + 1) {
-                    Log.d("### RecyclerView ", "Load new list")
-                    currentPublicationsList=publicationsList.subList(0, totalItemCount+20)
+                    var updatedList=publicationsList.subList(totalItemCount, totalItemCount+20)
+                    currentPublicationsList.addAll(updatedList)
                     recyclerView.adapter?.notifyDataSetChanged()
-                   // mRecyclerViewAdapter.notifyItemInserted(currentPublicationsList.size - 1);
-                    //mRecyclerView.removeOnScrollListener(scrollListener)
+                    mRecyclerView.removeOnScrollListener(scrollListener)
                 }
             }
         }
