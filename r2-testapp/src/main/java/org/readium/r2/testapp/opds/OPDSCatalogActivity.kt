@@ -103,14 +103,14 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
                         orientation = LinearLayout.VERTICAL
 
                         for (navigation in result.feed!!.navigation) {
-//                            button {
-//                                text = navigation.title
-//                                onClick {
-//                                    val model = OPDSModel(navigation.title!!, navigation.href.toString(), opdsModel?.type!!)
-//                                    progress.show()
-//                                    startActivity(intentFor<OPDSCatalogActivity>("opdsModel" to model))
-//                                }
-//                            }
+                            button {
+                                text = navigation.title
+                                onClick {
+                                    val model = OPDSModel(navigation.title!!, navigation.href.toString(), opdsModel?.type!!)
+                                    progress.show()
+                                    startActivity(intentFor<OPDSCatalogActivity>("opdsModel" to model))
+                                }
+                            }
                         }
 
                         if (result.feed!!.publications.isNotEmpty()) {
