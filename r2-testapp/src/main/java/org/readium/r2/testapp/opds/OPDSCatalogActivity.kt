@@ -15,6 +15,7 @@ package org.readium.r2.testapp.opds
 import android.app.ProgressDialog
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.LinearLayout
 import android.widget.ListPopupWindow
@@ -22,6 +23,7 @@ import android.widget.ListView
 import android.widget.PopupWindow
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.commonsware.cwac.merge.MergeAdapter
 import com.mcxiaoke.koi.ext.onClick
 import kotlinx.android.synthetic.main.filter_row.view.*
@@ -38,6 +40,7 @@ import org.jetbrains.anko.recyclerview.v7.recyclerView
 import org.jetbrains.anko.support.v4.nestedScrollView
 import org.readium.r2.opds.OPDS1Parser
 import org.readium.r2.opds.OPDS2Parser
+import org.readium.r2.shared.Publication
 import org.readium.r2.shared.opds.Facet
 import org.readium.r2.shared.opds.ParseData
 import org.readium.r2.shared.publication.Link
@@ -63,6 +66,14 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
     private var showFacetMenu = false
     private var facetPopup: PopupWindow? = null
     private lateinit var progress: ProgressDialog
+    private var lastVisibleItemPosition: Int = 0
+
+    private lateinit var scrollListener: RecyclerView.OnScrollListener
+    private lateinit var mRecyclerView: RecyclerView
+    private lateinit var mLinearLayoutManager: LinearLayoutManager
+    private lateinit var publicationsList :MutableList<Publication>
+    private lateinit var currentPublicationsList :MutableList<Publication>
+    private lateinit var mRecyclerViewAdapter: RecyclerViewAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -89,6 +100,7 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
         parsePromise?.successUi { result ->
 
             facets = result.feed?.facets ?: mutableListOf()
+            publicationsList = result.feed?.publications!!
 
             if (facets.size > 0) {
                 showFacetMenu = true
@@ -114,11 +126,14 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
                         }
 
                         if (result.feed!!.publications.isNotEmpty()) {
-                            recyclerView {
+                            mRecyclerView = recyclerView {
                                 layoutManager = GridAutoFitLayoutManager(act, 120)
-                                adapter = RecyclerViewAdapter(act, result.feed!!.publications.subList(0,21))// For time being just passing 50 items to the adapter instead of passing 450 +, which makes the page loads very slow.
-                            }//
-                        //                              adapter = RecyclerViewAdapter(act, result.feed!!.publications)
+                                mLinearLayoutManager = layoutManager as LinearLayoutManager
+                                currentPublicationsList=publicationsList.subList(0, 20)
+                                adapter = RecyclerViewAdapter(act,currentPublicationsList )// For time being just passing 50 items to the adapter instead of passing 450 +, which makes the page loads very slow.
+                                mRecyclerViewAdapter = adapter as RecyclerViewAdapter
+                            }
+                            setRecyclerViewScrollListener()
                         }
 
                         for (group in result.feed!!.groups) {
@@ -178,6 +193,24 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
             if (DEBUG) Timber.e(it)
         }
 
+    }
+
+    private fun setRecyclerViewScrollListener() {
+        scrollListener = object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                lastVisibleItemPosition = mLinearLayoutManager.findLastVisibleItemPosition()
+                super.onScrollStateChanged(recyclerView, newState)
+                val totalItemCount = recyclerView.layoutManager?.itemCount
+                if (totalItemCount == lastVisibleItemPosition + 1) {
+                    Log.d("### RecyclerView ", "Load new list")
+                    currentPublicationsList=publicationsList.subList(0, totalItemCount+20)
+                    recyclerView.adapter?.notifyDataSetChanged()
+                   // mRecyclerViewAdapter.notifyItemInserted(currentPublicationsList.size - 1);
+                    //mRecyclerView.removeOnScrollListener(scrollListener)
+                }
+            }
+        }
+       mRecyclerView.addOnScrollListener(scrollListener)
     }
 
     override fun onPause() {
