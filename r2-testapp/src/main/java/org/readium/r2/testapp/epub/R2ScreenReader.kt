@@ -31,7 +31,7 @@ import java.util.*
  * Basic screen reader overlay that uses Android's TextToSpeech
  */
 
-class R2ScreenReader(var context: Context, var ttsCallbacks: IR2TTS, var navigator: VisualNavigator, var publication: Publication, private var port: Int, private var epubName: String, initialResourceIndex: Int) {
+class R2ScreenReader(var context: Context, var ttsCallbacks: IR2TTS, var ttsCalbacks2: TextHighlight, var navigator: VisualNavigator, var publication: Publication, private var port: Int, private var epubName: String, initialResourceIndex: Int) {
 
     private var initialized = false
 
@@ -168,7 +168,8 @@ class R2ScreenReader(var context: Context, var ttsCallbacks: IR2TTS, var navigat
      * Inner function that sets the Text To Speech language.
      */
     private fun setTTSLanguage() {
-        val language = textToSpeech.setLanguage(Locale(publication.metadata.languages.firstOrNull() ?: ""))
+        val language = textToSpeech.setLanguage(Locale(publication.metadata.languages.firstOrNull()
+                ?: ""))
 
         if (language == TextToSpeech.LANG_MISSING_DATA || language == TextToSpeech.LANG_NOT_SUPPORTED) {
             Toast.makeText(context.applicationContext, "There was an error with the TTS language, switching "
@@ -230,8 +231,13 @@ class R2ScreenReader(var context: Context, var ttsCallbacks: IR2TTS, var navigat
             override fun onStart(utteranceId: String?) {
                 currentUtterance = utteranceId!!.toInt()
 
-                ttsCallbacks.playTextChanged(utterances[currentUtterance])
+                // ttsCallbacks.playTextChanged(utterances[currentUtterance])
                 ttsCallbacks.playStateChanged(true)
+            }
+
+            override fun onRangeStart(utteranceId: String?, start: Int, end: Int, frame: Int) {
+                super.onRangeStart(utteranceId, start, end, frame)
+                ttsCalbacks2.playHighlightTextChanged(utterances[currentUtterance], start, end)
             }
 
             /**

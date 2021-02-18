@@ -10,6 +10,7 @@
 
 package org.readium.r2.testapp.epub
 
+import android.R.attr
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -19,6 +20,10 @@ import android.graphics.Point
 import android.graphics.Rect
 import android.os.Bundle
 import android.os.Handler
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 import android.util.DisplayMetrics
 import android.util.TypedValue
 import android.view.*
@@ -77,7 +82,7 @@ import kotlin.coroutines.CoroutineContext
  *      ( Table of content, User Settings, DRM, Bookmarks )
  *
  */
-class EpubActivity : R2EpubActivity(), CoroutineScope, NavigatorDelegate/*, VisualNavigatorDelegate, OutlineTableViewControllerDelegate*/ {
+class EpubActivity : R2EpubActivity(), CoroutineScope, NavigatorDelegate,TextHighlight/*, VisualNavigatorDelegate, OutlineTableViewControllerDelegate*/ {
 
     /**
      * Context of this scope.
@@ -830,8 +835,8 @@ class EpubActivity : R2EpubActivity(), CoroutineScope, NavigatorDelegate/*, Visu
         }
 
         val highlightLocations = highlight.locator.locations.copy(
-            progression = currentLocator.value.locations.progression,
-            position = currentPage?.toInt()
+                progression = currentLocator.value.locations.progression,
+                position = currentPage?.toInt()
         )
         val locationText = highlight.locator.text
 
@@ -916,7 +921,7 @@ class EpubActivity : R2EpubActivity(), CoroutineScope, NavigatorDelegate/*, Visu
             Handler().postDelayed({
                 val port = preferences.getString("$publicationIdentifier-publicationPort", 0.toString())?.toInt()
                 port?.let {
-                    screenReader = R2ScreenReader(this, this, this, publication, port, publicationFileName, resourcePager.currentItem)
+                    screenReader = R2ScreenReader(this, this, this, this, publication, port, publicationFileName, resourcePager.currentItem)
                 }
             }, 500)
         }
@@ -980,8 +985,18 @@ class EpubActivity : R2EpubActivity(), CoroutineScope, NavigatorDelegate/*, Visu
 
     override fun playTextChanged(text: String) {
         super.playTextChanged(text)
-        findViewById<TextView>(R.id.tts_textView)?.text = text
+        //findViewById<TextView>(R.id.tts_textView)?.text = text
         TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(tts_textView!!, 1, 30, 1, TypedValue.COMPLEX_UNIT_DIP)
+    }
+
+    override fun playHighlightTextChanged(text: String, start: Int, end: Int) {
+        super.playHighlightTextChanged(text, start, end)
+        //findViewById<TextView>(R.id.tts_textView)?.text = text
+        runOnUiThread {
+            val textWithHighlights: Spannable = SpannableString(text)
+            textWithHighlights.setSpan(ForegroundColorSpan(Color.GREEN), start, end, Spanned.SPAN_INCLUSIVE_INCLUSIVE)
+            findViewById<TextView>(R.id.tts_textView)?.text = textWithHighlights
+        }
     }
 
     override fun playStateChanged(playing: Boolean) {
