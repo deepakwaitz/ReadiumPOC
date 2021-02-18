@@ -17,14 +17,13 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.speech.tts.Voice
 import android.util.Log
-import android.util.Log.DEBUG
 import android.widget.Toast
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements
 import org.readium.r2.navigator.IR2TTS
 import org.readium.r2.navigator.VisualNavigator
 import org.readium.r2.shared.publication.Publication
-
+import org.readium.r2.testapp.BuildConfig.DEBUG
 import timber.log.Timber
 import java.io.IOException
 import java.util.*
@@ -188,9 +187,11 @@ class R2ScreenReader(var context: Context, var ttsCallbacks: IR2TTS, var ttsCalb
      * Inner function that sets the Text To Speech language.
      */
     private fun setTTSLanguage() {
-        getvoices();
-        val language = textToSpeech.setLanguage(Locale(publication.metadata.languages.firstOrNull() ?: ""))
-        textToSpeech.setVoice(tempVoiceList.get(16))
+        //getvoices();
+        //val language = textToSpeech.setLanguage(Locale(publication.metadata.languages.firstOrNull() ?: ""))
+        //textToSpeech.setVoice(tempVoiceList.get(16))
+        val language = textToSpeech.setLanguage(Locale(publication.metadata.languages.firstOrNull()
+                ?: ""))
 
         if (language == TextToSpeech.LANG_MISSING_DATA || language == TextToSpeech.LANG_NOT_SUPPORTED) {
             Toast.makeText(context.applicationContext, "There was an error with the TTS language, switching "
@@ -227,9 +228,7 @@ class R2ScreenReader(var context: Context, var ttsCallbacks: IR2TTS, var ttsCalb
      * @return: Boolean - Whether executing the function was successful or not.
      */
     private fun configure(): Boolean {
-        if (isGoogleEngineInstalled()) {
-            setTTSLanguage()
-        }
+        setTTSLanguage()
 
         return setUtterances()
                 && flushUtterancesQueue()
@@ -522,8 +521,19 @@ class R2ScreenReader(var context: Context, var ttsCallbacks: IR2TTS, var ttsCalb
             if (DEBUG) Timber.tag(this::class.java.simpleName).e("Error while flushing TTS queue.")
             return false
         }
-
+        /*Voice change happens here*/
+        setHumanVoice()
         return true
+    }
+
+    private fun setHumanVoice() {
+        /*Here we setting the voice manually by setting values to the Voice model
+        * we can add male voice too by adding corresponding voice names*/
+        val v = Voice("en-IN-language", Locale("en_IN"), 400, 200, false, setOf("networkTimeoutMs", "networkRetriesCount"))
+        textToSpeech.setVoice(v);
+        val map = HashMap<String, String>()
+        map[TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID] = "merp"
+        textToSpeech.speak("", TextToSpeech.QUEUE_FLUSH, map)
     }
 
     /**
