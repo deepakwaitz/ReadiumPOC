@@ -79,7 +79,7 @@ class R2AboutActivity : AppCompatActivity() {
                     }.lparams(width = wrapContent, height = wrapContent, weight = 1f)
                 }
 
-                textView {
+                /*textView {
                     padding = dip(10)
                     topPadding = dip(30)
                     text = context.getString(R.string.copyright_label)
@@ -101,8 +101,8 @@ class R2AboutActivity : AppCompatActivity() {
                         textSize = 18f
                         gravity = Gravity.END
                     }.lparams(width = wrapContent, height = wrapContent, weight = 1f)
-                }
-                linearLayout {
+                }*/
+                /*linearLayout {
                     orientation = LinearLayout.HORIZONTAL
                     lparams(width = matchParent, height = wrapContent)
                     weightSum = 2f
@@ -118,16 +118,16 @@ class R2AboutActivity : AppCompatActivity() {
                         textSize = 18f
                         gravity = Gravity.END
                     }.lparams(width = wrapContent, height = wrapContent, weight = 1f)
-                }
+                }*/
 
-                textView {
+               /* textView {
                     padding = dip(10)
                     topPadding = dip(30)
                     text = context.getString(R.string.acknowledgements_label)
                     textSize = 20f
                     typeface = Typeface.DEFAULT_BOLD
-                }
-                linearLayout {
+                }*/
+                /*linearLayout {
                     orientation = LinearLayout.HORIZONTAL
                     lparams(width = matchParent, height = wrapContent)
                     weightSum = 2f
@@ -142,7 +142,7 @@ class R2AboutActivity : AppCompatActivity() {
                         textSize = 18f
                         gravity = Gravity.END
                     }.lparams(width = wrapContent, height = wrapContent, weight = 1f)
-                }
+                }*/
                 linearLayout {
                     orientation = LinearLayout.HORIZONTAL
                     lparams(width = matchParent, height = wrapContent)
