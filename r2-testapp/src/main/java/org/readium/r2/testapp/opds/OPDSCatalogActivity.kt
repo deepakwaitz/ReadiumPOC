@@ -14,8 +14,11 @@ package org.readium.r2.testapp.opds
 
 import android.app.ProgressDialog
 import android.content.Context
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.*
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.LinearLayout
 import android.widget.ListPopupWindow
 import android.widget.ListView
@@ -25,6 +28,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.commonsware.cwac.merge.MergeAdapter
 import com.mcxiaoke.koi.ext.onClick
+import kotlinx.android.synthetic.main.activity_webview.*
 import kotlinx.android.synthetic.main.filter_row.view.*
 import kotlinx.android.synthetic.main.section_header.view.*
 import kotlinx.coroutines.CoroutineScope
@@ -51,7 +55,7 @@ import java.net.MalformedURLException
 import java.net.URL
 import kotlin.coroutines.CoroutineContext
 
-
+const val MAX_PROGRESS = 100
 class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
     /**
      * Context of this scope.
@@ -66,6 +70,8 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
     private var facetPopup: PopupWindow? = null
     private lateinit var progress: ProgressDialog
     private var lastVisibleItemPosition: Int = 0
+    private var loadTimeStart: Long = 0
+    private var loadTimeEnd: Long = 0
 
     private lateinit var scrollListener: RecyclerView.OnScrollListener
     private lateinit var mRecyclerView: RecyclerView
@@ -74,21 +80,24 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        progress = indeterminateProgressDialog(getString(R.string.progress_wait_while_loading_feed))
+        requestWindowFeature(Window.FEATURE_NO_TITLE)
+        setContentView(R.layout.activity_webview)
+        supportActionBar?.hide()
+        //progress = indeterminateProgressDialog(getString(R.string.progress_wait_while_loading_feed))
 
         opdsModel = intent.getSerializableExtra("opdsModel") as? OPDSModel
-
+        initWebView()
+        loadUrl()
         opdsModel?.href.let {
-            progress.show()
+            //progress.show()
             try {
-                parsePromise = if (opdsModel?.type == 1) {
+                parsePromise = if (opdsModel?.type == 10) {
                     OPDS1Parser.parseURL(URL(it))
                 } else {
                     OPDS2Parser.parseURL(URL(it))
                 }
             } catch (e: MalformedURLException) {
-                progress.dismiss()
+                //progress.dismiss()
                 snackbar(act.coordinatorLayout(), "Failed parsing OPDS")
             }
             title = opdsModel?.title
@@ -115,7 +124,7 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
                                 text = navigation.title
                                 onClick {
                                     val model = OPDSModel(navigation.title!!, navigation.href.toString(), opdsModel?.type!!)
-                                    progress.show()
+                                    //progress.show()
                                     startActivity(intentFor<OPDSCatalogActivity>("opdsModel" to model))
                                 }
                             }
@@ -178,13 +187,13 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
                         }
                     }
                 }
-                progress.dismiss()
+                //progress.dismiss()
             }
         }
 
         parsePromise?.fail {
             launch {
-                progress.dismiss()
+                //progress.dismiss()
 //                snackbar(act.coordinatorLayout(), it.message!!)
             }
             if (DEBUG) Timber.e(it)
@@ -222,7 +231,7 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
 
     override fun onPause() {
         super.onPause()
-        progress.dismiss()
+        //progress.dismiss()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -287,6 +296,45 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
             startActivity(intentFor<OPDSCatalogActivity>("opdsModel" to model))
         }
         return layout
+    }
+
+    private fun initWebView() {
+        webView.settings.javaScriptEnabled = true
+        webView.settings.loadWithOverviewMode = true
+        webView.settings.useWideViewPort = true
+        webView.settings.domStorageEnabled = true
+        // WebViewClient allows you to handle
+        // onPageFinished and override Url loading.
+        webView.webViewClient = WebViewClient()
+        webView.webViewClient = object : WebViewClient() {
+
+            override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                super.onPageStarted(view, url, favicon)
+                loadTimeStart = System.currentTimeMillis()
+                Timber.d("--->Webview loading Started-->>" + loadTimeStart)
+            }
+
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                loadTimeEnd = System.currentTimeMillis() // - loadTimeStart
+                Timber.d("--->Webview loading finished-->>"+((loadTimeEnd - loadTimeStart) / 1000))
+            }
+        }
+    }
+
+    private fun loadUrl() {
+        // this will load the url of the website
+        webView.loadUrl("https://readium.firebaseapp.com/?")
+    }
+
+    // if you press Back button this code will work
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        // if your webview can go back it will go back
+        if (keyCode == KeyEvent.KEYCODE_BACK && this.webView.canGoBack()) {
+            this.webView.goBack()
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
     }
 
 }
