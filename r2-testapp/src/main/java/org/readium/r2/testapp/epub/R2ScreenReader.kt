@@ -11,8 +11,12 @@
 package org.readium.r2.testapp.epub
 
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.speech.tts.Voice
+import android.util.Log
 import android.widget.Toast
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements
@@ -34,6 +38,8 @@ import java.util.*
 class R2ScreenReader(var context: Context, var ttsCallbacks: IR2TTS, var ttsCalbacks2: TextHighlight, var navigator: VisualNavigator, var publication: Publication, private var port: Int, private var epubName: String, initialResourceIndex: Int) {
 
     private var initialized = false
+
+    lateinit var tempVoiceList: MutableList<Voice>;
 
     private var resourceIndex = initialResourceIndex
         set(value) {
@@ -94,7 +100,20 @@ class R2ScreenReader(var context: Context, var ttsCallbacks: IR2TTS, var ttsCalb
                 TextToSpeech.OnInitListener { status ->
                     initialized = (status != TextToSpeech.ERROR)
                     if (DEBUG) Timber.tag(this::class.java.simpleName).d("textToSpeech initialization status: $initialized")
-                })
+                },"com.google.android.tts")
+    }
+
+    private fun getvoices() {
+        textToSpeech.stop();
+        tempVoiceList  = ArrayList()
+
+        for (v in textToSpeech.getVoices()) {
+            if (v.locale.language.contains("en")) { // only English voices
+                tempVoiceList.add(v)
+            }
+        }
+        if (DEBUG) Timber.tag(this::class.java.simpleName).d("veeeeee: ${tempVoiceList.toString()}")
+
     }
 
 
@@ -168,6 +187,9 @@ class R2ScreenReader(var context: Context, var ttsCallbacks: IR2TTS, var ttsCalb
      * Inner function that sets the Text To Speech language.
      */
     private fun setTTSLanguage() {
+        //getvoices();
+        //val language = textToSpeech.setLanguage(Locale(publication.metadata.languages.firstOrNull() ?: ""))
+        //textToSpeech.setVoice(tempVoiceList.get(16))
         val language = textToSpeech.setLanguage(Locale(publication.metadata.languages.firstOrNull()
                 ?: ""))
 
@@ -212,6 +234,34 @@ class R2ScreenReader(var context: Context, var ttsCallbacks: IR2TTS, var ttsCalb
                 && flushUtterancesQueue()
                 && setTTSCallbacks()
     }
+
+
+    private fun isGoogleEngineInstalled(): Boolean {
+        val ttsIntent = Intent()
+        ttsIntent.action = TextToSpeech.Engine.ACTION_CHECK_TTS_DATA
+        val pm: PackageManager = context.getPackageManager()
+        val list = pm.queryIntentActivities(ttsIntent, PackageManager.GET_META_DATA)
+        var googleIsInstalled = false
+        for (i in list.indices) {
+            val resolveInfoUnderScrutiny = list[i]
+            val engineName = resolveInfoUnderScrutiny.activityInfo.applicationInfo.packageName
+            if (engineName == "com.google.android.tts") {
+                var version = "null"
+                try {
+                    version = pm.getPackageInfo(engineName,
+                            PackageManager.GET_META_DATA).versionName
+                } catch (e: java.lang.Exception) {
+                    Log.i("XXX", "Error getting google engine verion: $e")
+                }
+                Log.i("XXX", "Google engine version $version is installed!")
+                googleIsInstalled = true
+            } else {
+                Log.i("XXX", "Google Engine is not installed!")
+            }
+        }
+        return googleIsInstalled
+    }
+
 
     /**
      * Set the TTS callbacks.
@@ -313,6 +363,7 @@ class R2ScreenReader(var context: Context, var ttsCallbacks: IR2TTS, var ttsCalb
         initialized = false
         stopReading()
         textToSpeech.shutdown()
+        tempVoiceList.clear()
     }
 
     /**
@@ -470,8 +521,19 @@ class R2ScreenReader(var context: Context, var ttsCallbacks: IR2TTS, var ttsCalb
             if (DEBUG) Timber.tag(this::class.java.simpleName).e("Error while flushing TTS queue.")
             return false
         }
-
+        /*Voice change happens here*/
+        setHumanVoice()
         return true
+    }
+
+    private fun setHumanVoice() {
+        /*Here we setting the voice manually by setting values to the Voice model
+        * we can add male voice too by adding corresponding voice names*/
+        val v = Voice("en-IN-language", Locale("en_IN"), 400, 200, false, setOf("networkTimeoutMs", "networkRetriesCount"))
+        textToSpeech.setVoice(v);
+        val map = HashMap<String, String>()
+        map[TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID] = "merp"
+        textToSpeech.speak("", TextToSpeech.QUEUE_FLUSH, map)
     }
 
     /**
