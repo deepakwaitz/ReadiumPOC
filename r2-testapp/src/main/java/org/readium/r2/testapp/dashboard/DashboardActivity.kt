@@ -2,7 +2,6 @@ package org.readium.r2.testapp.dashboard
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.recyclerview.widget.GridLayoutManager
 import kotlinx.android.synthetic.main.activity_dashboard.*
@@ -28,35 +27,35 @@ class DashboardActivity : AppCompatActivity(),RecyclerViewItemClickListener {
     }
 
     fun init(){
-        recycler_epub2.apply {
-            layoutManager = GridLayoutManager(this@DashboardActivity,3)
-            adapter=Epub2Adapter(epub2,recyclerViewItemClickListener)
-        }
+//        recycler_epub2.apply {
+//            layoutManager = GridLayoutManager(this@DashboardActivity,3)
+//            adapter=Epub2Adapter(epub2,recyclerViewItemClickListener)
+//        }
 
-        recycler_epub3.apply {
-            layoutManager = GridLayoutManager(this@DashboardActivity,3)
-            adapter= Epub3Adapter(epub3,recyclerViewItemClickListener)
-        }
+//        recycler_epub3.apply {
+//            layoutManager = GridLayoutManager(this@DashboardActivity,3)
+//            adapter= Epub3Adapter(epub3,recyclerViewItemClickListener)
+//        }
 
-        recycler_comic.apply {
-            layoutManager = GridLayoutManager(this@DashboardActivity,3)
-            adapter= ComicBookAdapter(comic,recyclerViewItemClickListener)
-        }
+//        recycler_comic.apply {
+//            layoutManager = GridLayoutManager(this@DashboardActivity,3)
+//            adapter= ComicBookAdapter(comic,recyclerViewItemClickListener)
+//        }
 
-        recycler_audio.apply {
-            layoutManager = GridLayoutManager(this@DashboardActivity,3)
-            adapter= AudioBookAdapter(audio,recyclerViewItemClickListener)
-        }
+//        recycler_audio.apply {
+//            layoutManager = GridLayoutManager(this@DashboardActivity,3)
+//            adapter= AudioBookAdapter(audio,recyclerViewItemClickListener)
+//        }
 
-        recycler_pdf.apply {
-            layoutManager = GridLayoutManager(this@DashboardActivity,3)
-            adapter= PDFBookAdapter(pdf,recyclerViewItemClickListener)
-        }
+//        recycler_pdf.apply {
+//            layoutManager = GridLayoutManager(this@DashboardActivity,3)
+//            adapter= PDFBookAdapter(pdf,recyclerViewItemClickListener)
+//        }
 
-        recycler_other.apply {
-            layoutManager = GridLayoutManager(this@DashboardActivity,3)
-            adapter= OtherBookAdapter()
-        }
+//        recycler_other.apply {
+//            layoutManager = GridLayoutManager(this@DashboardActivity,3)
+//            adapter= OtherBookAdapter()
+//        }
     }
 
     override fun itemClick(booktype: BookType, postion: Int) {
@@ -65,6 +64,10 @@ class DashboardActivity : AppCompatActivity(),RecyclerViewItemClickListener {
             BookType.EPUB3X -> Toast.makeText(this,"EPUB3X",Toast.LENGTH_SHORT).show()
             BookType.COMIC -> Toast.makeText(this,"COMIC",Toast.LENGTH_SHORT).show()
         }
+    }
+
+    override fun itemClickFile(filename: String) {
+        TODO("Not yet implemented")
     }
 
 

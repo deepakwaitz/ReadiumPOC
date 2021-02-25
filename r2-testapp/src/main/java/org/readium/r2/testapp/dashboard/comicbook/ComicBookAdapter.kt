@@ -5,10 +5,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.item_recycle_sample.view.*
 import org.readium.r2.testapp.R
-import org.readium.r2.testapp.dashboard.BookType
 import org.readium.r2.testapp.dashboard.RecyclerViewItemClickListener
+import org.readium.r2.testapp.db.Book
 
-class ComicBookAdapter(var comic: List<String>, var recyclerViewItemClickListener: RecyclerViewItemClickListener) : RecyclerView.Adapter<ComicViewHolder>() {
+class ComicBookAdapter(var comic: ArrayList<Book>, var recyclerViewItemClickListener: RecyclerViewItemClickListener) : RecyclerView.Adapter<ComicViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ComicViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return ComicViewHolder(inflater, parent)
@@ -22,7 +22,7 @@ class ComicBookAdapter(var comic: List<String>, var recyclerViewItemClickListene
         var data = comic[position]
         holder.bind(data)
         holder.itemView.card_view.setOnClickListener {
-            recyclerViewItemClickListener.itemClick(BookType.COMIC,position)
+            data.fileName?.let { it1 -> recyclerViewItemClickListener.itemClickFile(it1) }
         }
     }
 
@@ -30,7 +30,7 @@ class ComicBookAdapter(var comic: List<String>, var recyclerViewItemClickListene
 
 class ComicViewHolder(inflater: LayoutInflater, parent: ViewGroup):RecyclerView.ViewHolder(
         inflater.inflate(R.layout.item_recycle_sample,parent,false)) {
-    fun bind(comic: String) {
-        itemView.titleTextView.text = comic
+    fun bind(comic: Book) {
+        itemView.titleTextView.text = comic.title
     }
 }

@@ -18,7 +18,8 @@
         android:theme="@style/AppTheme"
         tools:replace="android:allowBackup"
         tools:targetApi="n">
-        <activity android:name=".dashboard.DashboardActivity"></activity>
+        <activity android:name=".dashboard.MainActivity"></activity>
+        <activity android:name=".dashboard.DashboardActivity" />
         <activity
             android:name=".SplashActivity"
             android:clearTaskOnLaunch="true"
@@ -33,7 +34,7 @@
         <activity
             android:name=".library.LibraryActivity"
             android:clearTaskOnLaunch="true"
-            android:configChanges="orientation|screenSize"></activity>
+            android:configChanges="orientation|screenSize" />
         <activity
             android:name=".utils.R2DispatcherActivity"
             android:launchMode="singleInstance"

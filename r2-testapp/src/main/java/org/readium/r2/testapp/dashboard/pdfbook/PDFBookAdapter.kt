@@ -7,8 +7,9 @@ import kotlinx.android.synthetic.main.item_recycle_sample.view.*
 import org.readium.r2.testapp.R
 import org.readium.r2.testapp.dashboard.BookType
 import org.readium.r2.testapp.dashboard.RecyclerViewItemClickListener
+import org.readium.r2.testapp.db.Book
 
-class PDFBookAdapter(var pdf: List<String>, var recyclerViewItemClickListener: RecyclerViewItemClickListener) : RecyclerView.Adapter<PDFViewHolder>() {
+class PDFBookAdapter(var pdf: ArrayList<Book>, var recyclerViewItemClickListener: RecyclerViewItemClickListener) : RecyclerView.Adapter<PDFViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PDFViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return PDFViewHolder(inflater, parent)
@@ -22,7 +23,7 @@ class PDFBookAdapter(var pdf: List<String>, var recyclerViewItemClickListener: R
         val data=  pdf[position]
         holder.bind(data)
         holder.itemView.card_view.setOnClickListener {
-            recyclerViewItemClickListener.itemClick(BookType.PDF,position)
+            data.fileName?.let { it1 -> recyclerViewItemClickListener.itemClickFile(it1) }
         }
     }
 
@@ -30,7 +31,7 @@ class PDFBookAdapter(var pdf: List<String>, var recyclerViewItemClickListener: R
 
 class PDFViewHolder(inflater: LayoutInflater, parent: ViewGroup):RecyclerView.ViewHolder(
         inflater.inflate(R.layout.item_recycle_sample,parent,false)) {
-    fun bind(pdf: String) {
-        itemView.titleTextView.text = pdf
+    fun bind(pdf: Book) {
+        itemView.titleTextView.text = pdf.title
     }
 }
