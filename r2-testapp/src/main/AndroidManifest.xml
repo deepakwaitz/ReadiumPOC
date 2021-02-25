@@ -18,11 +18,12 @@
         android:theme="@style/AppTheme"
         tools:replace="android:allowBackup"
         tools:targetApi="n">
+        <activity android:name=".dashboard.DashboardActivity"></activity>
         <activity
-            android:name="SplashActivity"
+            android:name=".SplashActivity"
             android:clearTaskOnLaunch="true"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:configChanges="orientation|screenSize">
+            android:configChanges="orientation|screenSize"
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -32,9 +33,7 @@
         <activity
             android:name=".library.LibraryActivity"
             android:clearTaskOnLaunch="true"
-            android:configChanges="orientation|screenSize">
-
-        </activity>
+            android:configChanges="orientation|screenSize"></activity>
         <activity
             android:name=".utils.R2DispatcherActivity"
             android:launchMode="singleInstance"
