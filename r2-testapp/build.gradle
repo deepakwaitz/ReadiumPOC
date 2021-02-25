@@ -163,6 +163,8 @@ dependencies {
     implementation "org.jsoup:jsoup:1.10.3"
     implementation "org.slf4j:slf4j-nop:1.7.30"
 
+    implementation 'com.github.barteksc:pdfium-android:1.4.0'
+
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
     testImplementation "junit:junit:4.13.1"
 

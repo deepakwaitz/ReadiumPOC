@@ -7,6 +7,8 @@
     tools:ignore="MissingConstraints"
     android:orientation="vertical"
     android:padding="10dp"
+    android:id="@+id/nested"
+    android:visibility="gone"
     android:fillViewport="true"
     tools:context=".dashboard.DashboardActivity">
 
@@ -92,45 +94,45 @@
             android:padding="5dp">
 
         </androidx.recyclerview.widget.RecyclerView>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Audio Books"
-            android:textStyle="bold"
-            android:textColor="@color/title_txt_clr"
-            android:textSize="@dimen/title_txt_size"
-            android:gravity="center"
-            android:background="@color/bg_grey"
-            android:padding="10dp"
+<!--        <TextView-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="Audio Books"-->
+<!--            android:textStyle="bold"-->
+<!--            android:textColor="@color/title_txt_clr"-->
+<!--            android:textSize="@dimen/title_txt_size"-->
+<!--            android:gravity="center"-->
+<!--            android:background="@color/bg_grey"-->
+<!--            android:padding="10dp"-->
 
-            >
-        </TextView>
-        <androidx.recyclerview.widget.RecyclerView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/recycler_audio"
-            android:padding="5dp">
+<!--            >-->
+<!--        </TextView>-->
+<!--        <androidx.recyclerview.widget.RecyclerView-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:id="@+id/recycler_audio"-->
+<!--            android:padding="5dp">-->
 
-        </androidx.recyclerview.widget.RecyclerView>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Other Books"
-            android:textStyle="bold"
-            android:textColor="@color/title_txt_clr"
-            android:textSize="@dimen/title_txt_size"
-            android:gravity="center"
-            android:background="@color/bg_grey"
-            android:padding="10dp"
-            >
-        </TextView>
-        <androidx.recyclerview.widget.RecyclerView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/recycler_other"
-            android:padding="5dp">
+<!--        </androidx.recyclerview.widget.RecyclerView>-->
+<!--        <TextView-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="Other Books"-->
+<!--            android:textStyle="bold"-->
+<!--            android:textColor="@color/title_txt_clr"-->
+<!--            android:textSize="@dimen/title_txt_size"-->
+<!--            android:gravity="center"-->
+<!--            android:background="@color/bg_grey"-->
+<!--            android:padding="10dp"-->
+<!--            >-->
+<!--        </TextView>-->
+<!--        <androidx.recyclerview.widget.RecyclerView-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:id="@+id/recycler_other"-->
+<!--            android:padding="5dp">-->
 
-        </androidx.recyclerview.widget.RecyclerView>
+<!--        </androidx.recyclerview.widget.RecyclerView>-->
     </LinearLayout>
 
 </androidx.core.widget.NestedScrollView>

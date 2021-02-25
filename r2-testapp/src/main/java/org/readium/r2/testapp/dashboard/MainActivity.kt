@@ -1,30 +1,20 @@
-/*
- * Module: r2-testapp-kotlin
- * Developers: Aferdita Muriqi, Clément Baumann, Mostapha Idoubihi, Paul Stoica
- *
- * Copyright (c) 2018. European Digital Reading Lab. All rights reserved.
- * Licensed to the Readium Foundation under one or more contributor license agreements.
- * Use of this source code is governed by a BSD-style license which is detailed in the
- * LICENSE file present in the project repository where this source code is maintained.
- */
-
-package org.readium.r2.testapp.library
+package org.readium.r2.testapp.dashboard
 
 import android.app.ProgressDialog
 import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Rect
 import android.net.Uri
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
-import android.view.*
+import android.view.View
 import android.webkit.URLUtil
 import android.widget.EditText
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import kotlinx.android.synthetic.main.activity_dashboard.*
 import kotlinx.coroutines.CoroutineScope
@@ -33,7 +23,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.anko.*
 import org.jetbrains.anko.appcompat.v7.Appcompat
-import org.jetbrains.anko.design.*
+import org.jetbrains.anko.design.textInputLayout
 import org.readium.r2.lcp.LcpService
 import org.readium.r2.shared.Injectable
 import org.readium.r2.shared.extensions.extension
@@ -50,17 +40,13 @@ import org.readium.r2.shared.util.flatMap
 import org.readium.r2.shared.util.mediatype.MediaType
 import org.readium.r2.streamer.Streamer
 import org.readium.r2.streamer.server.Server
-import org.readium.r2.testapp.BuildConfig.DEBUG
+import org.readium.r2.testapp.BuildConfig
 import org.readium.r2.testapp.R
-import org.readium.r2.testapp.R2AboutActivity
-import org.readium.r2.testapp.dashboard.BookType
-import org.readium.r2.testapp.dashboard.RecyclerViewItemClickListener
-import org.readium.r2.testapp.dashboard.epub2.ComicBookAdapter
-import org.readium.r2.testapp.dashboard.epub2.Epub2Adapter
-import org.readium.r2.testapp.dashboard.epub2.Epub3Adapter
-import org.readium.r2.testapp.dashboard.epub2.PDFBookAdapter
-import org.readium.r2.testapp.db.*
-import org.readium.r2.testapp.opds.OPDSListActivity
+import org.readium.r2.testapp.dashboard.epub2.*
+import org.readium.r2.testapp.db.Book
+import org.readium.r2.testapp.db.BooksDatabase
+import org.readium.r2.testapp.db.books
+import org.readium.r2.testapp.library.BooksAdapter
 import org.readium.r2.testapp.permissions.PermissionHelper
 import org.readium.r2.testapp.permissions.Permissions
 import org.readium.r2.testapp.utils.ContentResolverUtil
@@ -73,14 +59,12 @@ import java.io.InputStream
 import java.net.ServerSocket
 import java.net.URL
 import java.util.*
-import java.util.concurrent.atomic.AtomicInteger
+import kotlin.collections.ArrayList
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-var activitiesLaunched: AtomicInteger = AtomicInteger(0)
-
-class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListener,RecyclerViewItemClickListener, CoroutineScope {
+class MainActivity : AppCompatActivity(),RecyclerViewItemClickListener, CoroutineScope {
 
     /**
      * Context of this scope.
@@ -91,9 +75,7 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
     private lateinit var server: Server
     private var localPort: Int = 0
 
-    lateinit var recyclerViewItemClickListener: RecyclerViewItemClickListener
-
-   // private lateinit var booksAdapter: BooksAdapter
+    private lateinit var booksAdapter: BooksAdapter
     private lateinit var permissionHelper: PermissionHelper
     private lateinit var permissions: Permissions
     private lateinit var preferences: SharedPreferences
@@ -104,31 +86,40 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
     private lateinit var streamer: Streamer
     private lateinit var lcpService: Try<LcpService, Exception>
 
-   // private lateinit var catalogView: androidx.recyclerview.widget.RecyclerView
+    // private lateinit var catalogView: androidx.recyclerview.widget.RecyclerView
     private lateinit var alertDialog: AlertDialog
     private lateinit var documentPickerLauncher: ActivityResultLauncher<String>
     private lateinit var navigatorLauncher: ActivityResultLauncher<NavigatorContract.Input>
-    var progressDialog : ProgressDialog ?= null
+
+
+    var audio = listOf("Audio-1","Audio-2")
+    var epub2 = listOf("Epub2x-1","Epub2x-2")
+    var epub3 = listOf("Epub3x-1","Epub3x-2")
+    var pdf = listOf("Path of Love","Intermediate Economics")
+    var comic = listOf("Comic-1","Comic-2")
+
+    lateinit var recyclerViewItemClickListener: RecyclerViewItemClickListener
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dashboard)
-        preferences = getSharedPreferences("org.readium.r2.settings", Context.MODE_PRIVATE)
+
         recyclerViewItemClickListener=this
-         progressDialog = ProgressDialog(this)
-        progressDialog!!.setTitle("Loading...")
-        progressDialog!!.setMessage("Book is loading, please wait")
-        progressDialog!!.show()
+      //  init()
+
+        preferences = getSharedPreferences("org.readium.r2.settings", Context.MODE_PRIVATE)
+
         lcpService = LcpService(this)
-            ?.let { Try.success(it) }
-            ?: Try.failure(Exception("liblcp is missing on the classpath"))
+                ?.let { Try.success(it) }
+                ?: Try.failure(Exception("liblcp is missing on the classpath"))
 
         streamer = Streamer(this,
-            contentProtections = listOfNotNull(
-                lcpService.getOrNull()?.contentProtection()
-            )
+                contentProtections = listOfNotNull(
+                        lcpService.getOrNull()?.contentProtection()
+                )
         )
 
-        val s = ServerSocket(if (DEBUG) 8080 else 0)
+        val s = ServerSocket(if (BuildConfig.DEBUG) 8080 else 0)
         s.localPort
         s.close()
 
@@ -153,15 +144,22 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
         books = database.books.list()
         if(books.size==7){
             Log.e("BookCheck",""+ books.size)
-            progressDialog!!.dismiss()
-            nested.visibility=View.VISIBLE
             launch {
                 bookList()
             }
 
         }
 
-       // booksAdapter = BooksAdapter(this, books, this)
+        Log.e("BookSize",""+ books.size)
+        launch {
+            if(books.size>0){
+                bookList()
+            }
+
+        }
+
+
+        //  booksAdapter = BooksAdapter(this, books, this)
 
         documentPickerLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             uri?.let { importPublicationFromUri(it) }
@@ -189,7 +187,7 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
 //            }
 //
 ////            catalogView = recyclerView {
-////                layoutManager = GridAutoFitLayoutManager(this@LibraryActivity, 120)
+////                layoutManager = GridAutoFitLayoutManager(this@TestActivity, 120)
 ////                adapter = booksAdapter
 ////
 ////                lparams {
@@ -236,8 +234,8 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
 ////                margin = dip(16)
 ////            }
 //        }
-    }
 
+    }
     override fun onStart() {
         super.onStart()
 
@@ -270,28 +268,6 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
         stopServer()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return super.onCreateOptionsMenu(menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-
-            R.id.opds -> {
-                startActivity(intentFor<OPDSListActivity>())
-                false
-            }
-            R.id.about -> {
-                startActivity(intentFor<R2AboutActivity>())
-                false
-            }
-
-            else -> super.onOptionsItemSelected(item)
-        }
-
-    }
-
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         this.permissions.onRequestPermissionsResult(requestCode, permissions, grantResults)
@@ -303,7 +279,7 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
                 server.start()
             } catch (e: IOException) {
                 // do nothing
-                if (DEBUG) Timber.e(e)
+                if (BuildConfig.DEBUG) Timber.e(e)
             }
             if (server.isAlive) {
 //                // Add your own resources here
@@ -315,7 +291,7 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
                 server.loadCustomResource(assets.open("Search/search.js"), "search.js", Injectable.Script)
                 server.loadCustomResource(assets.open("Search/mark.css"), "mark.css", Injectable.Style)
 
-                isServerStarted = true
+               isServerStarted = true
             }
         }
     }
@@ -334,7 +310,7 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
             val file = assets.open("Samples/$element").copyToTempFile()
             if (file != null)
                 importPublication(file)
-            else if (BuildConfig.DEBUG)
+            else if (org.jetbrains.anko.design.BuildConfig.DEBUG)
                 error("Unable to load sample into the library")
         }
     }
@@ -371,12 +347,12 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
                         editTextHref!!.requestFocus()
                     } else {
                         val url = tryOrNull { URL(editTextHref?.text.toString()) }
-                            ?: return@setOnClickListener
+                                ?: return@setOnClickListener
 
                         launch {
                             val progress =
-                                blockingProgressDialog(getString(R.string.progress_wait_while_downloading_book))
-                                    .apply { show() }
+                                    blockingProgressDialog(getString(R.string.progress_wait_while_downloading_book))
+                                            .apply { show() }
 
                             val downloadedFile = url.copyToTempFile() ?: return@launch
                             importPublication(downloadedFile, sourceUrl = url.toString(), progress = progress)
@@ -392,11 +368,11 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
 
         launch {
             val progress = blockingProgressDialog(getString(R.string.progress_wait_while_downloading_book))
-                .apply { show() }
+                    .apply { show() }
 
             uri.copyToTempFile()
-                ?.let { importPublication(it, sourceUrl = uri.toString(), progress = progress) }
-                ?: progress.dismiss()
+                    ?.let { importPublication(it, sourceUrl = uri.toString(), progress = progress) }
+                    ?: progress.dismiss()
         }
     }
 
@@ -405,25 +381,25 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
         val sourceMediaType = sourceFile.mediaType()
 
         val publicationAsset: FileAsset =
-            if (sourceMediaType != MediaType.LCP_LICENSE_DOCUMENT)
-                FileAsset(sourceFile, sourceMediaType)
-            else {
-                lcpService
-                    .flatMap { it.acquirePublication(sourceFile) }
-                    .fold(
-                        {
-                            val mediaType = MediaType.of(fileExtension = File(it.suggestedFilename).extension)
-                            FileAsset(it.localFile, mediaType)
-                        },
-                        {
-                            tryOrNull { sourceFile.delete() }
-                            Timber.d(it)
-                            progress?.dismiss()
-                           // if (foreground) catalogView.longSnackbar("fulfillment error: ${it.message}")
-                            return
-                        }
-                    )
-            }
+                if (sourceMediaType != MediaType.LCP_LICENSE_DOCUMENT)
+                    FileAsset(sourceFile, sourceMediaType)
+                else {
+                    lcpService
+                            .flatMap { it.acquirePublication(sourceFile) }
+                            .fold(
+                                    {
+                                        val mediaType = MediaType.of(fileExtension = File(it.suggestedFilename).extension)
+                                        FileAsset(it.localFile, mediaType)
+                                    },
+                                    {
+                                        tryOrNull { sourceFile.delete() }
+                                        Timber.d(it)
+                                        progress?.dismiss()
+                                        //    if (foreground) catalogView.longSnackbar("fulfillment error: ${it.message}")
+                                        return
+                                    }
+                            )
+                }
 
         val mediaType = publicationAsset.mediaType()
         val fileName = "${UUID.randomUUID()}.${mediaType.fileExtension}"
@@ -435,7 +411,7 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
             Timber.d(e)
             tryOrNull { publicationAsset.file.delete() }
             progress?.dismiss()
-        //    if (foreground) catalogView.longSnackbar("unable to move publication into the library")
+            // if (foreground) catalogView.longSnackbar("unable to move publication into the library")
             return
         }
 
@@ -446,49 +422,46 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
         val isRwpm = libraryAsset.mediaType().isRwpm
 
         val bddHref =
-            if (!isRwpm)
-                libraryAsset.file.path
-            else
-                sourceUrl ?: run {
-                    Timber.e("Trying to add a RWPM to the database from a file without sourceUrl.")
-                    progress?.dismiss()
-                    return
-                }
+                if (!isRwpm)
+                    libraryAsset.file.path
+                else
+                    sourceUrl ?: run {
+                        Timber.e("Trying to add a RWPM to the database from a file without sourceUrl.")
+                        progress?.dismiss()
+                        return
+                    }
 
-        streamer.open(libraryAsset, allowUserInteraction = false, sender = this@LibraryActivity)
-            .onSuccess {
-                addPublicationToDatabase(bddHref, extension, it).let {success ->
-                    progress?.dismiss()
-                    val msg =
-                        if (success){
-                            if(books.size==7){
-                                Log.e("BookCheck",""+ books.size)
-                                withContext(Dispatchers.Main) {
-                                    nested.visibility=View.VISIBLE
+        streamer.open(libraryAsset, allowUserInteraction = false, sender = this@MainActivity)
+                .onSuccess {
+                    addPublicationToDatabase(bddHref, extension, it).let {success ->
+                        progress?.dismiss()
+                        val msg =
+                                if (success){
+                                    Log.e("BookSize",""+ books.size)
+                                    if(books.size==7){
+                                        Log.e("BookCheck",""+ books.size)
+                                            bookList()
+                                    }
+                                    "publication added to your library"
+
                                 }
 
-                                bookList()
-                                progressDialog!!.dismiss()
-
-                            }
-                            "publication added to your library"
-                        }
+                                else
+                                    "unable to add publication to the database"
+                        if (foreground)
+                        // catalogView.longSnackbar(msg)
                         else
-                            "unable to add publication to the database"
-                    if (foreground)
-                     //   catalogView.longSnackbar(msg)
-                    else
-                        Timber.d(msg)
-                    if (success && isRwpm)
-                        tryOrNull { libraryAsset.file.delete() }
+                            Timber.d(msg)
+                        if (success && isRwpm)
+                            tryOrNull { libraryAsset.file.delete() }
+                    }
                 }
-            }
-            .onFailure {
-                tryOrNull { libraryAsset.file.delete() }
-                Timber.d(it)
-                progress?.dismiss()
-                if (foreground) presentOpeningException(it)
-            }
+                .onFailure {
+                    tryOrNull { libraryAsset.file.delete() }
+                    Timber.d(it)
+                    progress?.dismiss()
+                    if (foreground) presentOpeningException(it)
+                }
     }
 
     private suspend fun addPublicationToDatabase(href: String, extension: String, publication: Publication): Boolean {
@@ -497,13 +470,13 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
         val cover = publication.cover()?.toPng()
 
         val book = Book(
-            title = publication.metadata.title,
-            author = author,
-            href = href,
-            identifier = publicationIdentifier,
-            cover = cover,
-            ext = ".$extension",
-            progression = "{}"
+                title = publication.metadata.title,
+                author = author,
+                href = href,
+                identifier = publicationIdentifier,
+                cover = cover,
+                ext = ".$extension",
+                progression = "{}"
         )
 
         return addBookToDatabase(book)
@@ -514,7 +487,8 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
             book.id = id
             books.add(0, book)
             withContext(Dispatchers.Main) {
-             //   booksAdapter.notifyDataSetChanged()
+                Log.e("Success","s")
+             // booksAdapter.notifyDataSetChanged()
             }
             return true
         }
@@ -535,40 +509,14 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
         val filename = UUID.randomUUID().toString()
         val mediaType = MediaType.ofUri(this, contentResolver)
         val path = "$R2DIRECTORY$filename.${mediaType?.fileExtension ?: "tmp"}"
-        ContentResolverUtil.getContentInputStream(this@LibraryActivity, this, path)
+        ContentResolverUtil.getContentInputStream(this@MainActivity, this, path)
         return File(path)
     }
 
     private suspend fun InputStream.copyToTempFile(): File? = tryOrNull {
         val filename = UUID.randomUUID().toString()
         File(R2DIRECTORY + filename)
-            .also { toFile(it.path) }
-    }
-
-    override fun recyclerViewListLongClicked(v: View, position: Int) {
-//        //Inflating the layout
-//        val layout = LayoutInflater.from(this).inflate(R.layout.popup_delete, catalogView, false)
-//        val popup = PopupWindow(this)
-//        popup.contentView = layout
-//        popup.width = ListPopupWindow.WRAP_CONTENT
-//        popup.height = ListPopupWindow.WRAP_CONTENT
-//        popup.isOutsideTouchable = true
-//        popup.isFocusable = true
-//        popup.showAsDropDown(v, 24, -350, Gravity.CENTER)
-//        val delete: Button = layout.findViewById(R.id.delete) as Button
-//        delete.setOnClickListener {
-//            val book = books[position]
-//            books.remove(book)
-//            booksAdapter.notifyDataSetChanged()
-//            tryOrNull { File(book.href).delete() }
-//            val deleted = database.books.delete(book)
-//            if (deleted > 0) {
-//                BookmarksDatabase(this).bookmarks.delete(deleted.toLong())
-//                PositionsDatabase(this).positions.delete(deleted.toLong())
-//            }
-//            popup.dismiss()
-//            catalogView.longSnackbar("publication deleted from your library")
-//        }
+                .also { toFile(it.path) }
     }
 
     private suspend fun confirmAddDuplicateBook(book: Book): Boolean = suspendCoroutine { cont ->
@@ -588,55 +536,6 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
         }
     }
 
-    override fun recyclerViewListClicked(v: View, position: Int) {
-        val progress = blockingProgressDialog(getString(R.string.progress_wait_while_preparing_book))
-        /*
-        FIXME: if the progress dialog were shown, the LCP popup window would not be accessible to the user.
-        progress.show()
-         */
-        progress.dismiss()
-
-        launch {
-            val booksDB = BooksDatabase(this@LibraryActivity)
-            val book = books[position]
-
-            val remoteAsset: FileAsset? = tryOrNull { URL(book.href).copyToTempFile()?.let { FileAsset(it) } }
-            val mediaType = MediaType.of(fileExtension = book.ext.removePrefix("."))
-            val asset = remoteAsset // remote file
-                ?: FileAsset(File(book.href), mediaType = mediaType) // local file
-
-            streamer.open(asset, allowUserInteraction = true, sender = this@LibraryActivity)
-                .onFailure {
-                    Timber.d(it)
-                    progress.dismiss()
-                    presentOpeningException(it)
-                }
-                .onSuccess { it ->
-                    if (it.isRestricted) {
-                        progress.dismiss()
-//                        it.protectionError?.let { error ->
-//                            Timber.d(error)
-//                            catalogView.longSnackbar(error.getUserMessage(this@LibraryActivity))
-//                        }
-                    } else {
-                        prepareToServe(it, asset)
-                        progress.dismiss()
-                        navigatorLauncher.launch(
-                            NavigatorContract.Input(
-                                file = asset.file,
-                                mediaType = mediaType,
-                                publication = it,
-                                bookId = book.id,
-                                initialLocator = book.id?.let { id -> booksDB.books.currentLocator(id) },
-                                deleteOnResult = remoteAsset != null,
-                                baseUrl = Publication.localBaseUrlOf(asset.name, localPort)
-                            )
-                    	)
-                    }
-                }
-        }
-    }
-
     private fun prepareToServe(publication: Publication, asset: PublicationAsset) {
         val key = publication.metadata.identifier ?: publication.metadata.title
         preferences.edit().putString("$key-publicationPort", localPort.toString()).apply()
@@ -645,7 +544,48 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
     }
 
     private fun presentOpeningException(error: Publication.OpeningException) {
-      //  catalogView.longSnackbar(error.getUserMessage(this))
+        //   catalogView.longSnackbar(error.getUserMessage(this))
+    }
+
+    class VerticalSpaceItemDecoration(private val verticalSpaceHeight: Int) : androidx.recyclerview.widget.RecyclerView.ItemDecoration() {
+
+        override fun getItemOffsets(outRect: Rect, view: View, parent: androidx.recyclerview.widget.RecyclerView,
+                                    state: androidx.recyclerview.widget.RecyclerView.State) {
+            outRect.bottom = verticalSpaceHeight
+        }
+    }
+    companion object {
+
+        var isServerStarted = false
+            private set
+
+    }
+    fun init(){
+//        recycler_epub2.apply {
+//            layoutManager = GridLayoutManager(this@MainActivity,3)
+//            adapter= Epub2Adapter(epub2,recyclerViewItemClickListener)
+//        }
+
+//        recycler_epub3.apply {
+//            layoutManager = GridLayoutManager(this@MainActivity,3)
+//            adapter= Epub3Adapter(epub3,recyclerViewItemClickListener)
+//        }
+
+//        recycler_comic.apply {
+//            layoutManager = GridLayoutManager(this@MainActivity,3)
+//            adapter= ComicBookAdapter(comic,recyclerViewItemClickListener)
+//        }
+
+//        recycler_audio.apply {
+//            layoutManager = GridLayoutManager(this@MainActivity,3)
+//            adapter= AudioBookAdapter(audio,recyclerViewItemClickListener)
+//        }
+//
+//
+//        recycler_other.apply {
+//            layoutManager = GridLayoutManager(this@MainActivity,3)
+//            adapter= OtherBookAdapter()
+//        }
     }
 
     suspend fun bookList(){
@@ -670,25 +610,25 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
         withContext(Dispatchers.Main) {
 
             recycler_epub2.apply {
-                layoutManager = GridLayoutManager(this@LibraryActivity,3)
+                layoutManager = GridLayoutManager(this@MainActivity,3)
                 adapter= Epub2Adapter(epub2Book,recyclerViewItemClickListener)
                 (adapter as Epub2Adapter).notifyDataSetChanged()
             }
 
             recycler_epub3.apply {
-                layoutManager = GridLayoutManager(this@LibraryActivity,3)
+                layoutManager = GridLayoutManager(this@MainActivity,3)
                 adapter= Epub3Adapter(epubBook,recyclerViewItemClickListener)
                 (adapter as Epub3Adapter).notifyDataSetChanged()
             }
 
-            recycler_pdf.apply {
-                layoutManager = GridLayoutManager(this@LibraryActivity,3)
-                adapter= PDFBookAdapter(this@LibraryActivity,pdfBook,recyclerViewItemClickListener)
-                (adapter as PDFBookAdapter).notifyDataSetChanged()
-            }
+//            recycler_pdf.apply {
+//                layoutManager = GridLayoutManager(this@MainActivity,3)
+//                adapter= PDFBookAdapter(this@LibraryActivity, pdfBook, recyclerViewItemClickListener)
+//                (adapter as PDFBookAdapter).notifyDataSetChanged()
+//            }
 
             recycler_comic.apply {
-                layoutManager = GridLayoutManager(this@LibraryActivity,3)
+                layoutManager = GridLayoutManager(this@MainActivity,3)
                 adapter= ComicBookAdapter(comicBook,recyclerViewItemClickListener)
                 (adapter as ComicBookAdapter).notifyDataSetChanged()
             }
@@ -696,24 +636,7 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
 
         Log.e("pdfBoook",""+pdfBook.size)
     }
-
-    class VerticalSpaceItemDecoration(private val verticalSpaceHeight: Int) : androidx.recyclerview.widget.RecyclerView.ItemDecoration() {
-
-        override fun getItemOffsets(outRect: Rect, view: View, parent: androidx.recyclerview.widget.RecyclerView,
-                                    state: androidx.recyclerview.widget.RecyclerView.State) {
-            outRect.bottom = verticalSpaceHeight
-        }
-    }
-
-
-    companion object {
-
-        var isServerStarted = false
-            private set
-
-    }
-
-    override fun itemClick(booktype: BookType, postion: Int) {
+    override fun itemClick(booktype: BookType, position: Int) {
 
     }
 
@@ -726,11 +649,11 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
         progress.dismiss()
 
         launch {
-            val booksDB = BooksDatabase(this@LibraryActivity)
-            var book:Book?=null
+            val booksDB = BooksDatabase(this@MainActivity)
+             var book:Book?=null
             for(i in books.indices){
                 if(books[i].fileName==filename){
-                    book = books[i]
+                   book = books[i]
                 }
             }
             val remoteAsset: FileAsset? = tryOrNull { URL(book!!.href).copyToTempFile()?.let { FileAsset(it) } }
@@ -738,7 +661,7 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
             val asset = remoteAsset // remote file
                     ?: FileAsset(File(book.href), mediaType = mediaType) // local file
 
-            streamer.open(asset, allowUserInteraction = true, sender = this@LibraryActivity)
+            streamer.open(asset, allowUserInteraction = true, sender = this@MainActivity)
                     .onFailure {
                         Timber.d(it)
                         progress.dismiss()
@@ -769,5 +692,4 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
                     }
         }
     }
-
 }

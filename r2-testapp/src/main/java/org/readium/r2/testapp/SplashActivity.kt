@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import org.readium.r2.testapp.dashboard.MainActivity
+import org.readium.r2.testapp.library.LibraryActivity
 
 class SplashActivity : AppCompatActivity() {
 
@@ -19,7 +20,7 @@ class SplashActivity : AppCompatActivity() {
             // This method will be executed once the timer is over
             // Start your app main activity
 
-            startActivity(Intent(this,MainActivity::class.java))
+            startActivity(Intent(this,LibraryActivity::class.java))
 
             // close this activity
             finish()
