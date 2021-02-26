@@ -463,7 +463,7 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
                     progress?.dismiss()
                     val msg =
                         if (success){
-                            if(books.size==7){
+                            if(books.size==9){
                                 Log.e("BookCheck",""+ books.size)
                                 withContext(Dispatchers.Main) {
                                     nested.visibility=View.VISIBLE
