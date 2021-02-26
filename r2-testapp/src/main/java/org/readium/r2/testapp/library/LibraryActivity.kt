@@ -331,7 +331,7 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
 
     private suspend fun copySamplesFromAssetsToStorage() = withContext(Dispatchers.IO) {
         val samples = assets.list("Samples")?.filterNotNull().orEmpty()
-
+        Log.e("Samples",""+samples.size)
         for (element in samples) {
             val file = assets.open("Samples/$element").copyToTempFile()
             if (file != null)
@@ -574,20 +574,20 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
 
     private suspend fun confirmAddDuplicateBook(book: Book): Boolean = suspendCoroutine { cont ->
         try {
-            alert(Appcompat, "Publication already exists") {
-                positiveButton("Add anyway") {
-                    it.dismiss()
-                    cont.resume(true)
-                }
-                negativeButton("Cancel") {
-                    it.dismiss()
-                    cont.resume(false)
-                }
-            }.build().apply {
-                setCancelable(false)
-                setCanceledOnTouchOutside(false)
-                show()
-            }
+//            alert(Appcompat, "Publication already exists") {
+//                positiveButton("Add anyway") {
+//                    it.dismiss()
+//                    cont.resume(true)
+//                }
+//                negativeButton("Cancel") {
+//                    it.dismiss()
+//                    cont.resume(false)
+//                }
+//            }.build().apply {
+//                setCancelable(false)
+//                setCanceledOnTouchOutside(false)
+//                show()
+//            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
