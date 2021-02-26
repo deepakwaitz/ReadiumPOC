@@ -83,8 +83,6 @@ dependencies {
     }
     if (findProject(':r2-navigator')) {
         implementation project(':r2-navigator')
-    } else {
-        implementation "com.github.readium:r2-navigator-kotlin:$READIUM_VERSION"
     }
     if (findProject(':r2-streamer')) {
         implementation project(':r2-streamer')
