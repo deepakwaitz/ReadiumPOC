@@ -101,7 +101,7 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
 
     private lateinit var streamer: Streamer
     private lateinit var lcpService: Try<LcpService, Exception>
-
+    var audio = listOf("AudioBook-1","AudioBook-2")
    // private lateinit var catalogView: androidx.recyclerview.widget.RecyclerView
     private lateinit var alertDialog: AlertDialog
     private lateinit var documentPickerLauncher: ActivityResultLauncher<String>
@@ -573,19 +573,23 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
     }
 
     private suspend fun confirmAddDuplicateBook(book: Book): Boolean = suspendCoroutine { cont ->
-        alert(Appcompat, "Publication already exists") {
-            positiveButton("Add anyway") {
-                it.dismiss()
-                cont.resume(true)
+        try {
+            alert(Appcompat, "Publication already exists") {
+                positiveButton("Add anyway") {
+                    it.dismiss()
+                    cont.resume(true)
+                }
+                negativeButton("Cancel") {
+                    it.dismiss()
+                    cont.resume(false)
+                }
+            }.build().apply {
+                setCancelable(false)
+                setCanceledOnTouchOutside(false)
+                show()
             }
-            negativeButton("Cancel") {
-                it.dismiss()
-                cont.resume(false)
-            }
-        }.build().apply {
-            setCancelable(false)
-            setCanceledOnTouchOutside(false)
-            show()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -704,6 +708,12 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
                 adapter= OtherBookAdapter(downloadBook,recyclerViewItemClickListener)
                 (adapter as OtherBookAdapter).notifyDataSetChanged()
             }
+
+            recycler_audiobook.apply {
+            layoutManager = GridLayoutManager(this@LibraryActivity,3)
+            adapter= AudioBookAdapter(this@LibraryActivity,audio)
+        }
+
         }
 
         Log.e("pdfBoook",""+pdfBook.size)

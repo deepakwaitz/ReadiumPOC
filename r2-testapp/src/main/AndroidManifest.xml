@@ -19,6 +19,7 @@
         tools:replace="android:allowBackup"
         tools:targetApi="n">
         <activity android:name=".opds.OnlineEbookCatalogActivity"></activity>
+        <activity android:name=".dashboard.audiobook.OnlineAudioActivity"></activity>
         <activity android:name=".dashboard.MainActivity" />
         <activity android:name=".dashboard.DashboardActivity" />
         <activity
