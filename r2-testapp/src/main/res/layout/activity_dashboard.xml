@@ -114,25 +114,25 @@
 <!--            android:padding="5dp">-->
 
 <!--        </androidx.recyclerview.widget.RecyclerView>-->
-<!--        <TextView-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:text="Other Books"-->
-<!--            android:textStyle="bold"-->
-<!--            android:textColor="@color/title_txt_clr"-->
-<!--            android:textSize="@dimen/title_txt_size"-->
-<!--            android:gravity="center"-->
-<!--            android:background="@color/bg_grey"-->
-<!--            android:padding="10dp"-->
-<!--            >-->
-<!--        </TextView>-->
-<!--        <androidx.recyclerview.widget.RecyclerView-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:id="@+id/recycler_other"-->
-<!--            android:padding="5dp">-->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Downloaded Books"
+            android:textStyle="bold"
+            android:textColor="@color/title_txt_clr"
+            android:textSize="@dimen/title_txt_size"
+            android:gravity="center"
+            android:background="@color/bg_grey"
+            android:padding="10dp"
+            >
+        </TextView>
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/recycler_downloaded"
+            android:padding="5dp">
 
-<!--        </androidx.recyclerview.widget.RecyclerView>-->
+        </androidx.recyclerview.widget.RecyclerView>
     </LinearLayout>
 
 </androidx.core.widget.NestedScrollView>

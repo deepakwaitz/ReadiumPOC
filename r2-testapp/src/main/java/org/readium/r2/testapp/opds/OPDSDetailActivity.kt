@@ -117,7 +117,7 @@ class OPDSDetailActivity : AppCompatActivity(), CoroutineScope {
                                         }
                                     }
 
-                                    val book = Book(id = (-1).toLong(), title = publication.metadata.title, author = author, href = pair.first, identifier = publicationIdentifier, cover = stream.toByteArray(), ext = Publication.EXTENSION.EPUB.value, progression = "{}")
+                                    val book = Book(id = (-1).toLong(), title = publication.metadata.title, author = author, href = pair.first, identifier = publicationIdentifier, cover = stream.toByteArray(), ext = Publication.EXTENSION.EPUB.value, progression = "{}",download = "1")
                                     database.books.insert(book, false)?.let {
                                         book.id = it
                                         books.add(0,book)

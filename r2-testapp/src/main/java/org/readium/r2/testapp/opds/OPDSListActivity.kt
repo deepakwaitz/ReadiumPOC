@@ -12,6 +12,7 @@ package org.readium.r2.testapp.opds
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.Gravity
@@ -68,10 +69,11 @@ class OPDSListActivity : AppCompatActivity() {
             val OPDS2Catalog = OPDSModel( "OPDS 2.0 Test Catalog",  "https://test.opds.io/2.0/home.json", 2)
             val OTBCatalog = OPDSModel( "Open Textbooks Catalog",  "http://open.minitex.org/textbooks/", 1)
             val SEBCatalog = OPDSModel( "Standard eBooks Catalog",  " https://standardebooks.org/opds/all", 1)
+            val OnlineEbookCatalog = OPDSModel( "Online eBooks Catalog",  " https://standardebooks.org/opds/all", 10)
 
-            database.opds.insert(R2TestCatalog)
-            database.opds.insert(OPDS2Catalog)
-            database.opds.insert(OTBCatalog)
+           // database.opds.insert(R2TestCatalog)
+            //database.opds.insert(OPDS2Catalog)
+            database.opds.insert(OnlineEbookCatalog)
             database.opds.insert(SEBCatalog)
         }
 
@@ -205,7 +207,11 @@ private class OPDSViewAdapter(private val activity: Activity, private val list: 
         viewHolder.button.text = opdsModel.title
         viewHolder.button.onClick {
             //            snackbar(viewHolder.itemView, "test")
-            activity.startActivity(activity.intentFor<OPDSCatalogActivity>("opdsModel" to opdsModel))
+            when(position){
+                0 -> activity.startActivity(Intent(activity,OnlineEbookCatalogActivity::class.java))
+                1-> activity.startActivity(activity.intentFor<OPDSCatalogActivity>("opdsModel" to opdsModel))
+            }
+
         }
 
         viewHolder.button.onLongClick {

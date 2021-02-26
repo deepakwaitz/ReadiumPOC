@@ -78,26 +78,28 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
     private lateinit var mLinearLayoutManager: LinearLayoutManager
     private var currentPublicationsList: MutableList<Publication> = mutableListOf()
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
-        setContentView(R.layout.activity_webview)
+      //  setContentView(R.layout.activity_webview)
         supportActionBar?.hide()
-        //progress = indeterminateProgressDialog(getString(R.string.progress_wait_while_loading_feed))
+        progress = indeterminateProgressDialog(getString(R.string.progress_wait_while_loading_feed))
 
         opdsModel = intent.getSerializableExtra("opdsModel") as? OPDSModel
-        initWebView()
-        loadUrl()
+
+//        initWebView()
+//        loadUrl()
         opdsModel?.href.let {
-            //progress.show()
+            progress.show()
             try {
-                parsePromise = if (opdsModel?.type == 10) {
+                parsePromise = if (opdsModel?.type == 1) {
                     OPDS1Parser.parseURL(URL(it))
                 } else {
                     OPDS2Parser.parseURL(URL(it))
                 }
             } catch (e: MalformedURLException) {
-                //progress.dismiss()
+                progress.dismiss()
                 snackbar(act.coordinatorLayout(), "Failed parsing OPDS")
             }
             title = opdsModel?.title
@@ -124,7 +126,7 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
                                 text = navigation.title
                                 onClick {
                                     val model = OPDSModel(navigation.title!!, navigation.href.toString(), opdsModel?.type!!)
-                                    //progress.show()
+                                    progress.show()
                                     startActivity(intentFor<OPDSCatalogActivity>("opdsModel" to model))
                                 }
                             }
@@ -187,13 +189,13 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
                         }
                     }
                 }
-                //progress.dismiss()
+                progress.dismiss()
             }
         }
 
         parsePromise?.fail {
             launch {
-                //progress.dismiss()
+                progress.dismiss()
 //                snackbar(act.coordinatorLayout(), it.message!!)
             }
             if (DEBUG) Timber.e(it)
@@ -231,7 +233,7 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
 
     override fun onPause() {
         super.onPause()
-        //progress.dismiss()
+        progress.dismiss()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -330,10 +332,16 @@ class OPDSCatalogActivity : AppCompatActivity(), CoroutineScope {
     // if you press Back button this code will work
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         // if your webview can go back it will go back
-        if (keyCode == KeyEvent.KEYCODE_BACK && this.webView.canGoBack()) {
-            this.webView.goBack()
-            return true
+        try {
+            if(this.webView.canGoBack()!=null){
+                if (keyCode == KeyEvent.KEYCODE_BACK && this.webView.canGoBack()) {
+                    this.webView.goBack()
+                    return true
+                }
+            }
+        } catch (e: Exception) {
         }
+
         return super.onKeyDown(keyCode, event)
     }
 

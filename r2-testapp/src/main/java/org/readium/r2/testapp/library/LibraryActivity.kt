@@ -55,10 +55,7 @@ import org.readium.r2.testapp.R
 import org.readium.r2.testapp.R2AboutActivity
 import org.readium.r2.testapp.dashboard.BookType
 import org.readium.r2.testapp.dashboard.RecyclerViewItemClickListener
-import org.readium.r2.testapp.dashboard.epub2.ComicBookAdapter
-import org.readium.r2.testapp.dashboard.epub2.Epub2Adapter
-import org.readium.r2.testapp.dashboard.epub2.Epub3Adapter
-import org.readium.r2.testapp.dashboard.epub2.PDFBookAdapter
+import org.readium.r2.testapp.dashboard.epub2.*
 import org.readium.r2.testapp.db.*
 import org.readium.r2.testapp.opds.OPDSListActivity
 import org.readium.r2.testapp.permissions.PermissionHelper
@@ -74,6 +71,7 @@ import java.net.ServerSocket
 import java.net.URL
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.collections.ArrayList
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -151,15 +149,15 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
 
         database = BooksDatabase(this)
         books = database.books.list()
-        if(books.size==7){
-            Log.e("BookCheck",""+ books.size)
+
+        if(books.size>0){
             progressDialog!!.dismiss()
             nested.visibility=View.VISIBLE
             launch {
                 bookList()
             }
-
         }
+
 
        // booksAdapter = BooksAdapter(this, books, this)
 
@@ -261,6 +259,10 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
 
     override fun onResume() {
         super.onResume()
+        launch {
+            bookList()
+        }
+
       //  booksAdapter.notifyDataSetChanged()
     }
 
@@ -466,7 +468,6 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
                                 withContext(Dispatchers.Main) {
                                     nested.visibility=View.VISIBLE
                                 }
-
                                 bookList()
                                 progressDialog!!.dismiss()
 
@@ -654,13 +655,18 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
         var epubBook = ArrayList<Book>()
         var epub2Book = ArrayList<Book>()
         var comicBook = ArrayList<Book>()
+        var downloadBook = ArrayList<Book>()
         for(i in books.indices){
             when(books.get(i).ext){
                 ".epub"->{
-                    if(books.get(i).title!!.startsWith("Price")){
-                        epub2Book.add(books.get(i))
+                    if(books.get(i).download.equals("1")){
+                        downloadBook.add(books.get(i))
                     }else{
-                        epubBook.add(books.get(i))
+                        if(books.get(i).title!!.startsWith("Price")){
+                            epub2Book.add(books.get(i))
+                        }else{
+                            epubBook.add(books.get(i))
+                        }
                     }
                 }
                 ".pdf"-> pdfBook.add(books.get(i))
@@ -691,6 +697,12 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
                 layoutManager = GridLayoutManager(this@LibraryActivity,3)
                 adapter= ComicBookAdapter(comicBook,recyclerViewItemClickListener)
                 (adapter as ComicBookAdapter).notifyDataSetChanged()
+            }
+
+            recycler_downloaded.apply {
+                layoutManager = GridLayoutManager(this@LibraryActivity,3)
+                adapter= OtherBookAdapter(downloadBook,recyclerViewItemClickListener)
+                (adapter as OtherBookAdapter).notifyDataSetChanged()
             }
         }
 
