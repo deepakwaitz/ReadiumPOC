@@ -39,7 +39,7 @@ open class BooksAdapter(private val activity: Activity, private var books: Mutab
         viewHolder.textView.text = book.title
         viewHolder.textView.contentDescription = "\u00A0"
 
-        viewHolder.imageView.setImageResource(R.drawable.cover)
+        viewHolder.imageView.setImageResource(R.drawable.mobydick)
 
         if (book.title.isNotEmpty()) {
             viewHolder.imageView.contentDescription = book.title

@@ -73,7 +73,6 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.collections.ArrayList
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 var activitiesLaunched: AtomicInteger = AtomicInteger(0)
@@ -102,6 +101,8 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
     private lateinit var streamer: Streamer
     private lateinit var lcpService: Try<LcpService, Exception>
     var audio = listOf("AudioBook-1","AudioBook-2")
+    var online = listOf("Moby-Dick","Flatland")
+    var onlineImage = listOf(R.drawable.mobydick,R.drawable.flatland)
    // private lateinit var catalogView: androidx.recyclerview.widget.RecyclerView
     private lateinit var alertDialog: AlertDialog
     private lateinit var documentPickerLauncher: ActivityResultLauncher<String>
@@ -463,7 +464,7 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
                     progress?.dismiss()
                     val msg =
                         if (success){
-                            if(books.size==9){
+                            if(books.size==7){
                                 Log.e("BookCheck",""+ books.size)
                                 withContext(Dispatchers.Main) {
                                     nested.visibility=View.VISIBLE
@@ -687,7 +688,7 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
 
             recycler_epub3.apply {
                 layoutManager = GridLayoutManager(this@LibraryActivity,3)
-                adapter= Epub3Adapter(epubBook,recyclerViewItemClickListener)
+                adapter= Epub3Adapter(this@LibraryActivity,epubBook,recyclerViewItemClickListener)
                 (adapter as Epub3Adapter).notifyDataSetChanged()
             }
 
@@ -713,6 +714,11 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
             layoutManager = GridLayoutManager(this@LibraryActivity,3)
             adapter= AudioBookAdapter(this@LibraryActivity,audio)
         }
+
+            recycler_online.apply {
+                layoutManager = GridLayoutManager(this@LibraryActivity,3)
+                adapter= OnlineBookAdapter(this@LibraryActivity,onlineImage,online,recyclerViewItemClickListener)
+            }
 
         }
 

@@ -617,7 +617,7 @@ class MainActivity : AppCompatActivity(),RecyclerViewItemClickListener, Coroutin
 
             recycler_epub3.apply {
                 layoutManager = GridLayoutManager(this@MainActivity,3)
-                adapter= Epub3Adapter(epubBook,recyclerViewItemClickListener)
+              //  adapter= Epub3Adapter(this@LibraryActivity, epubBook, recyclerViewItemClickListener)
                 (adapter as Epub3Adapter).notifyDataSetChanged()
             }
 
