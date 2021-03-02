@@ -464,7 +464,7 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
                     progress?.dismiss()
                     val msg =
                         if (success){
-                            if(books.size==7){
+                            if(books.size==8){
                                 Log.e("BookCheck",""+ books.size)
                                 withContext(Dispatchers.Main) {
                                     nested.visibility=View.VISIBLE
@@ -512,7 +512,7 @@ class LibraryActivity : AppCompatActivity(), BooksAdapter.RecyclerViewClickListe
     }
 
     private suspend fun addBookToDatabase(book: Book, alertDuplicates: Boolean = true): Boolean {
-        database.books.insert(book, allowDuplicates = !alertDuplicates)?.let { id ->
+        database.books.insert(book, allowDuplicates = true)?.let { id ->
             book.id = id
             books.add(0, book)
             withContext(Dispatchers.Main) {
